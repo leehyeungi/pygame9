@@ -18,6 +18,7 @@ FPS = 60
 stone_count = 5
 alien_count = 3
 missile_count = 5
+catapult_count = 3
 
 def decrement_stones():
     global stone_count
@@ -55,6 +56,7 @@ if __name__ == "__main__":
     move = False
     
     clock = pygame.time.Clock()
+    
     t = 0
     tt = 0
 
@@ -97,6 +99,8 @@ if __name__ == "__main__":
     mouse_check = 0
     alien_shooting = 0
     time_counting = 1
+    directions = 180
+    powers = 10
     
     #게임루프
     while run:
@@ -173,9 +177,7 @@ if __name__ == "__main__":
             if time_counting % 120 == 0:
                 if missile.state == MISSILE_READY:
                     tt = 0
-                    alien.fire(power, direction) #뒤로 날아가게 만들기
-                    #던지고 날아가는 것이 없음
-                    #직선으로 날아가게 만들기
+                    alien.fire(powers, directions) #직선으로 날아가게 만들어야함.
 
         #2) 게임 상태 업데이트
         if stone.state == STONE_FLY:
@@ -199,6 +201,13 @@ if __name__ == "__main__":
                     (alien.rect.y + alien.rect.width/2) -\
                     explosion.rect.height/2
 
+        elif not explosion.alive():
+            #외계인도 죽고 폭발 애니메이션도 끝났을 때.
+            alien_group.add(alien)
+            alien_count -= 1
+            if alien_count == 0:
+                game_state = GAME_CLEAR
+
         if catapult.alive(): #missile과 catepult의 충돌 여부를 확인함.
             collideds = pygame.sprite.groupcollide(missile_group, catapult_group, False, True)
             if collideds:
@@ -211,20 +220,20 @@ if __name__ == "__main__":
                     explosion.rect.height/2
 
         elif not explosion.alive():
-            #외계인도 죽고 폭발 애니메이션도 끝났을 때.
-            alien_group.add(alien)
-            alien_count -= 1
-            if alien_count == 0:
-                game_state = GAME_CLEAR
-
-        #여기에 투석기가 죽고 끝났을 떄.
-        #elif not exposion.alive():
-            #game_state = GAME_OVER
+            #투석기가 죽고 폭발 애니메이션도 끝났을 떄.
+            catapult_group.add(catapult)
+            catapult_count -= 1
+            if catapult_count == 0:
+                game_state = GAME_OVER
 
         #외계인이 살아 있는데 돌멩이 수가 0이면 게임 오버.
         if alien.alive() and stone_count == 0:
             game_state = GAME_OVER
 
+        #투석기가 살아 있는데 미사일 수가 0이면 게임 오버.
+        if catapult.alive() and missile_count == 0:
+            game_state = GAME_OVER
+    
         if game_state == GAME_PLAY: #게임 객체 업데이트
             catapult_group.update()
             stone_group.update()
@@ -279,7 +288,19 @@ if __name__ == "__main__":
                              format(stone_count), True, (0,0,255))
             screen.blit(text, (10, 10))
 
+            #투석기의 개수 표시
+            sf = pygame.font.SysFont("Monospace", 20)
+            text = sf.render("catapult : {0}".
+                             format(catapult_count), True, (0, 0, 255))
+            screen.blit(text, (10, 30))
+
+            #alien이 돌에 맞아 죽었다면 애니메이션 재생
             if not alien.alive():
+                explosion_group.update()
+                explosion_group.draw(screen)
+
+            #catepult가 돌에 맞아 죽었다면 애니메이션 재생
+            if not catapult.alive():
                 explosion_group.update()
                 explosion_group.draw(screen)
                 
@@ -312,7 +333,6 @@ if __name__ == "__main__":
             title_size = sf.size(title_str)
             title_pos = (screen.get_width()/2 - title_size[0]/2, 100)
             screen.blit(title, title_pos)
-
 
         pygame.display.flip()
         clock.tick(FPS)
