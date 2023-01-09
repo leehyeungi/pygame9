@@ -17,7 +17,7 @@ from const import *
 FPS = 60
 stone_count = 5
 alien_count = 3
-missile_count = 5
+missile_count = 1000
 catapult_count = 3
 
 def decrement_stones():
@@ -309,12 +309,6 @@ if __name__ == "__main__":
             text = sf.render("alien : {0}".
                              format(alien_count), True, (0, 0, 255))
             screen.blit(text, (270, 10))
-
-            #미사일 개수를 표시
-            sf = pygame.font.SysFont("MOnospace", 20)
-            text = sf.render("missile : {0}".
-                             format(missile_count), True, (0, 0, 255))
-            screen.blit(text, (260, 30))
                 
         elif game_state == GAME_CLEAR:
             #게임 클리어
@@ -338,3 +332,4 @@ if __name__ == "__main__":
         clock.tick(FPS)
 
     pygame.quit()
+
