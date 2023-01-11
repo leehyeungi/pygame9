@@ -11,6 +11,8 @@ from catapult import Catapult
 from stone import Stone
 from alien import Alien
 from missile import Missile
+from item import Item
+from items import Items
 from explosion import Explosion
 from const import *
 
@@ -19,6 +21,7 @@ stone_count = 5
 alien_count = 3
 missile_count = 1000
 catapult_count = 3
+
 
 def decrement_stones():
     global stone_count
@@ -61,6 +64,7 @@ if __name__ == "__main__":
     tt = 0
 
     movexy = 0
+    movey = 0
     power = 15
     PI = math.pi
 
@@ -78,6 +82,11 @@ if __name__ == "__main__":
     missile.rect.y = -100
     missile_group = pygame.sprite.Group()
     missile_group.add(missile)
+    
+    items = Items() #몬스터볼
+    items.rect.y = -100
+    items_group = pygame.sprite.Group()
+    items_group.add(items)
 
     catapult = Catapult(stone)
     catapult.rect.x = 50 #위치변경
@@ -85,11 +94,17 @@ if __name__ == "__main__":
     catapult_group = pygame.sprite.Group()
     catapult_group.add(catapult)
 
-    alien = Alien(missile)
+    alien = Alien(missile) #에일리언
     alien.rect.x = 350
     alien.rect.y = BASE_Y
     alien_group = pygame.sprite.Group()
     alien_group.add(alien)
+
+    item = Item(items) #아이템
+    item.rect.x = 200
+    item.rect.y = BASE_Y
+    item_group = pygame.sprite.Group()
+    item_group.add(item)
 
     explosion = Explosion()
     explosion_group = pygame.sprite.Group()
@@ -127,11 +142,11 @@ if __name__ == "__main__":
                 if alien.rect.x > 250:
                     alien.rect.x -= 1
                 if alien.rect.x == 250:
-                    movexy = 1 
+                    movexy = 1
             elif movexy == 1: #위로 올라간다
-                if alien.rect.y > 150:
+                if alien.rect.y > 100:
                     alien.rect.y -= 1
-                if alien.rect.y == 150:
+                if alien.rect.y == 100:
                     movexy = 2
             elif movexy == 2: #뒤로 나간다
                 if alien.rect.x < 350:
@@ -143,6 +158,19 @@ if __name__ == "__main__":
                     alien.rect.y += 1
                 if alien.rect.y == BASE_Y:
                     movexy = 0
+
+        #아이템이 움직이는 범위
+        if game_state == GAME_PLAY:
+            if movey == 0:
+                if item.rect.y > 100:
+                    item.rect.y -= 1
+                if item.rect.y == 100:
+                    movey == 1
+            elif movey == 1:
+                if item.rect.y < BASE_Y:
+                    item.rect.y += 1
+                if item.rect.y == BASE_Y:
+                    movey = 0
                 
         if game_state == GAME_PLAY:
             #누르고 있는 키 확인하기.
@@ -177,7 +205,14 @@ if __name__ == "__main__":
             if time_counting % 120 == 0:
                 if missile.state == MISSILE_READY:
                     tt = 0
-                    alien.fire(powers, directions) #직선으로 날아가게 만들어야함.
+                    alien.fire(powers, directions)
+
+        #GAME_PLAY 상태일 떄 아이템이 몬스터볼을 던짐
+        if game_state == GAME_PLAY:
+            if time_counting % 180 == 0:
+                if items.state == ITEMS_READY:
+                    ttt = 0
+                    item.fire(power, direction) #변경해야함.
 
         #2) 게임 상태 업데이트
         if stone.state == STONE_FLY:
@@ -332,4 +367,3 @@ if __name__ == "__main__":
         clock.tick(FPS)
 
     pygame.quit()
-
