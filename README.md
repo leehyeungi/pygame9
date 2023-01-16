@@ -21,6 +21,7 @@ stone_count = 5
 alien_count = 3
 missile_count = 1000
 catapult_count = 3
+items_count = 1000
 
 
 def decrement_stones():
@@ -30,6 +31,10 @@ def decrement_stones():
 def decrement_missiles():
     global missile_count
     missile_count -= 1
+
+def decrement_itemse():
+    global items_count
+    items_count -= 1
 
 class Background(Sprite):
     def __init__(self):
@@ -101,7 +106,7 @@ if __name__ == "__main__":
     alien_group.add(alien)
 
     item = Item(items) #아이템
-    item.rect.x = 200
+    item.rect.x = 400
     item.rect.y = BASE_Y
     item_group = pygame.sprite.Group()
     item_group.add(item)
@@ -165,7 +170,7 @@ if __name__ == "__main__":
                 if item.rect.y > 100:
                     item.rect.y -= 1
                 if item.rect.y == 100:
-                    movey == 1
+                    movey = 1
             elif movey == 1:
                 if item.rect.y < BASE_Y:
                     item.rect.y += 1
@@ -209,10 +214,10 @@ if __name__ == "__main__":
 
         #GAME_PLAY 상태일 떄 아이템이 몬스터볼을 던짐
         if game_state == GAME_PLAY:
-            if time_counting % 180 == 0:
+            if time_counting % 240 == 0:
                 if items.state == ITEMS_READY:
                     ttt = 0
-                    item.fire(power, direction) #변경해야함.
+                    item.fire(powers, directions) #변경해야함.
 
         #2) 게임 상태 업데이트
         if stone.state == STONE_FLY:
@@ -224,11 +229,15 @@ if __name__ == "__main__":
             tt += 0.5
             missile.move(tt, (screen.get_width(), screen.get_height()),
                          decrement_missiles)
+
+        if items.state == ITEMS_FLY:
+            ttt += 0.5
+            items.move(ttt, (screen.get_width(), screen.get_height()),
+                       decrement_itemse)
             
         if alien.alive(): #stone과 alien의 충돌 여부를 확인함.
             collided = pygame.sprite.groupcollide(stone_group, alien_group, False, True)
             if collided:
-                pp = collided
                 explosion.rect.x = \
                     (alien.rect.x + alien.rect.width/2) -\
                     explosion.rect.width/2
@@ -246,13 +255,23 @@ if __name__ == "__main__":
         if catapult.alive(): #missile과 catepult의 충돌 여부를 확인함.
             collideds = pygame.sprite.groupcollide(missile_group, catapult_group, False, True)
             if collideds:
-                k = collideds #collideds의 값이 k에 안들어감
                 explosion.rect.x = \
                     (catapult.rect.x + catapult.rect.width/2) -\
                     explosion.rect.width/2
                 explosion.rect.y = \
                     (catapult.rect.y + catapult.rect.width/2) -\
                     explosion.rect.height/2
+
+        #items과 catapult의 충돌 여부를 확인함
+        #if catapult.alive():
+            #collidedse = pygame.sprite.groupcollide(items_group, catapult_group, False, True)
+            #if collidedse:
+                #shield.rect.x = \
+                    #(catapult.rect.x + catapult.rect.width/2) - \
+                    #explosion.rect.width/2
+                #shield.rect.y = \
+                    #(catapult.rect.x + catapult.rect.width/2) - \
+                    #explosion.rect.height/2
 
         elif not explosion.alive():
             #투석기가 죽고 폭발 애니메이션도 끝났을 떄.
@@ -274,6 +293,8 @@ if __name__ == "__main__":
             stone_group.update()
             alien_group.update()
             missile_group.update()
+            item_group.update()
+            items_group.update()
 
         #3)게임 상태 그리기
         background_group.update()
@@ -302,6 +323,8 @@ if __name__ == "__main__":
             stone_group.draw(screen)
             alien_group.draw(screen)
             missile_group.draw(screen)
+            item_group.draw(screen)
+            items_group.draw(screen)
 
             #파워와 각도를 선으로 표현
             line_len = power*5
@@ -338,6 +361,9 @@ if __name__ == "__main__":
             if not catapult.alive():
                 explosion_group.update()
                 explosion_group.draw(screen)
+
+            #catapult가 아이템에 맞았다면 애니메이션 재생
+                
                 
             #에일리언의 개수 표시
             sf = pygame.font.SysFont("Monospace", 20)
