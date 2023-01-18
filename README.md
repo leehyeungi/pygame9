@@ -14,6 +14,7 @@ from missile import Missile
 from item import Item
 from items import Items
 from explosion import Explosion
+from shield import Shield
 from const import *
 
 FPS = 60
@@ -22,7 +23,7 @@ alien_count = 3
 missile_count = 1000
 catapult_count = 3
 items_count = 1000
-
+shields = 0 #shield의 개수
 
 def decrement_stones():
     global stone_count
@@ -114,7 +115,12 @@ if __name__ == "__main__":
     explosion = Explosion()
     explosion_group = pygame.sprite.Group()
     explosion_group.add(explosion)
-    mouse_pos = (300,100)
+    mouse_pos = (300, 100)
+
+    shield = Shield()
+    shield_group = pygame.sprite.Group()
+    shield_group.add(shield)
+    mouse_pos = (200, 100)
 
     mouse_check = 0
     alien_shooting = 0
@@ -217,7 +223,7 @@ if __name__ == "__main__":
             if time_counting % 240 == 0:
                 if items.state == ITEMS_READY:
                     ttt = 0
-                    item.fire(powers, directions) #변경해야함.
+                    item.fire(powers, directions)
 
         #2) 게임 상태 업데이트
         if stone.state == STONE_FLY:
@@ -263,22 +269,29 @@ if __name__ == "__main__":
                     explosion.rect.height/2
 
         #items과 catapult의 충돌 여부를 확인함
-        #if catapult.alive():
-            #collidedse = pygame.sprite.groupcollide(items_group, catapult_group, False, True)
-            #if collidedse:
-                #shield.rect.x = \
-                    #(catapult.rect.x + catapult.rect.width/2) - \
-                    #explosion.rect.width/2
-                #shield.rect.y = \
-                    #(catapult.rect.x + catapult.rect.width/2) - \
-                    #explosion.rect.height/2
+        if catapult.alive():
+            collidedse = pygame.sprite.groupcollide(items_group, catapult_group, False, False)
+            if collidedse:
+                shields += 1
+                shield.rect.x = \
+                    (catapult.rect.x + catapult.rect.width/2) - \
+                    shield.rect.width/2
+                shield.rect.y = \
+                    (catapult.rect.x + catapult.rect.width/2) - \
+                    shield.rect.height/2
+
+        #shield랑 missile의 충돌 여부를 확인함
+        if shield.alive():
+            collidede = pygame.sprite.groupcollide(items_group, missile_group, False, True)
+           if collidede:
+                shields -= 1
 
         elif not explosion.alive():
             #투석기가 죽고 폭발 애니메이션도 끝났을 떄.
             catapult_group.add(catapult)
             catapult_count -= 1
             if catapult_count == 0:
-                game_state = GAME_OVER
+                game_state = GAME_OVER 
 
         #외계인이 살아 있는데 돌멩이 수가 0이면 게임 오버.
         if alien.alive() and stone_count == 0:
@@ -363,7 +376,9 @@ if __name__ == "__main__":
                 explosion_group.draw(screen)
 
             #catapult가 아이템에 맞았다면 애니메이션 재생
-                
+            if not catapult.alive():
+                shield_group.update()
+                shield_group.draw(screen)
                 
             #에일리언의 개수 표시
             sf = pygame.font.SysFont("Monospace", 20)
